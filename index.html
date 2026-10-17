@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="description" content="お気に入りの山の土日予報を、風速・降水量・雲量で比較します。">
+    <title>週末の山の天気</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="./styles.css">
+    <script type="module" src="./src/app.mjs"></script>
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="page-heading">
+        <div>
+          <h1>週末の山の天気</h1>
+          <p id="weekend-range">—</p>
+        </div>
+        <button id="add-mountain" class="button" type="button">山を追加</button>
+      </header>
+
+      <div class="toolbar">
+        <div class="sort-control">
+          <span>並べ替える日</span>
+          <div class="day-switch" role="group" aria-label="並べ替える日">
+            <button type="button" id="saturday-tab" aria-pressed="true">土曜日</button>
+            <button type="button" id="sunday-tab" aria-pressed="false">日曜日</button>
+          </div>
+        </div>
+        <span class="time-label">6〜15時の予報</span>
+      </div>
+
+      <div class="list-meta">
+        <p id="ranking-description">選択日の天気条件がよい順</p>
+        <div class="update-control"><p id="updated-at">予報を取得しています…</p><button id="refresh" class="text-button" type="button">更新</button></div>
+      </div>
+      <p id="notice" class="notice" role="status" hidden></p>
+      <p id="load-status" class="sr-only" role="status"></p>
+
+      <table id="forecast-table" aria-describedby="ranking-description">
+        <caption class="sr-only">お気に入りの山の土日予報と、選択日の天気による順位</caption>
+        <thead>
+          <tr>
+            <th scope="col" class="mountain-heading">順位・山名</th>
+            <th scope="col" id="saturday-heading" class="day-header">
+              <span class="date-heading"></span>
+              <div class="metric-headings"><span>最大風速<span class="unit">m/s</span></span><span>合計降水<span class="unit">mm</span></span><span>平均雲量<span class="unit">%</span></span></div>
+            </th>
+            <th scope="col" id="sunday-heading" class="day-header">
+              <span class="date-heading"></span>
+              <div class="metric-headings"><span>最大風速<span class="unit">m/s</span></span><span>合計降水<span class="unit">mm</span></span><span>平均雲量<span class="unit">%</span></span></div>
+            </th>
+          </tr>
+        </thead>
+        <tbody id="mountain-list"></tbody>
+      </table>
+
+      <div id="empty-state" class="empty-state" hidden>
+        <p>山が登録されていません。</p>
+        <button id="empty-add" class="button" type="button">山を追加</button>
+      </div>
+
+      <details class="method">
+        <summary>比較方法・データについて</summary>
+        <div class="method-content">
+          <p>選択日の6〜15時の最大風速・合計降水量・平均雲量を比較し、風と降水を重視して並べます。</p>
+          <code>比較値 = 0.50 × 風速(m/s) / 10 + 0.35 × 降水量(mm) / 10 + 0.15 × 雲量(%) / 100</code>
+          <p>比較値が小さい順です。同点なら登録順、データ不足や古い予報は順位対象外です。</p>
+          <p>風と雲は山頂高度付近の推定値です。気圧面の予報を山の標高に合わせて線形補間しています。降水量は登録地点の予報で、雨・雪などの水当量を含みます。順位はこの3項目の比較で、登山可否の判定ではありません。</p>
+          <p>お気に入りはこのブラウザに最大5山まで保存します。</p>
+        </div>
+      </details>
+      <footer>
+        <p>予報：<a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Open-Meteo</a>（<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>、高度補間・時間集計） · 山データ：<a href="https://maps.gsi.go.jp/3d/mountain/mountain.html" target="_blank" rel="noreferrer">国土地理院</a></p>
+      </footer>
+    </main>
+
+    <dialog id="mountain-dialog" aria-labelledby="dialog-title">
+      <form id="mountain-form">
+        <div class="dialog-heading"><h2 id="dialog-title">山を追加</h2><button id="close-dialog" type="button" class="text-button" aria-label="編集を閉じる">閉じる</button></div>
+        <label>山名<input name="name" required maxlength="50" autocomplete="off" autofocus placeholder="例：高尾山"></label>
+        <div class="coordinate-fields"><label>緯度<input name="latitude" type="number" required min="-90" max="90" step="any" placeholder="35.625278"></label><label>経度<input name="longitude" type="number" required min="-180" max="180" step="any" placeholder="139.243611"></label></div>
+        <label>標高（m）<input name="elevationM" type="number" required min="0" max="9000" step="any" placeholder="599"></label>
+        <p class="form-help">山頂の緯度・経度を10進数で入力してください。<a href="https://maps.gsi.go.jp/" target="_blank" rel="noreferrer">地理院地図で調べる</a></p>
+        <p id="form-error" class="form-error" role="alert" hidden></p>
+        <div class="form-actions"><button id="delete-mountain" class="text-button delete-button" type="button">この山を削除</button><button class="button button-primary" type="submit">保存する</button></div>
+      </form>
+    </dialog>
+    <noscript>このアプリを使うには、ブラウザのJavaScriptを有効にしてください。</noscript>
+  </body>
+</html>

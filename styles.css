@@ -1,0 +1,119 @@
+:root {
+  color-scheme: light;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  color: #202722;
+  background: #fff;
+  font-size: 14px;
+  font-synthesis: none;
+  --muted: #626b65;
+  --line: #dce1dd;
+  --selected: #f1f5f2;
+  --accent: #27543a;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; opacity: .45; }
+button, input { border-radius: 3px; }
+button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+a { color: inherit; text-underline-offset: 3px; }
+[hidden] { display: none !important; }
+p { margin: 0; }
+.page-shell { max-width: 1040px; margin: 0 auto; padding: 36px 28px 24px; }
+.page-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 28px; }
+h1 { font-size: 22px; font-weight: 600; margin: 0 0 8px; }
+#weekend-range { color: var(--muted); font-size: 13px; }
+.button { min-height: 38px; padding: 8px 14px; border: 1px solid #aeb9b1; background: #fff; color: inherit; }
+.button:hover:enabled { background: var(--selected); }
+.button-primary { color: #fff; background: var(--accent); border-color: var(--accent); }
+.button-primary:hover:enabled { background: #1c442d; }
+.text-button { background: none; border: 0; color: var(--muted); padding: 7px 4px; text-decoration: underline; text-underline-offset: 3px; }
+.text-button:hover { color: var(--accent); }
+.toolbar, .sort-control, .day-switch, .list-meta, .update-control { display: flex; align-items: center; }
+.toolbar { gap: 24px; flex-wrap: wrap; margin-bottom: 18px; }
+.sort-control { gap: 12px; }
+.sort-control > span, .time-label { font-size: 12px; color: var(--muted); }
+.day-switch { gap: 6px; }
+.day-switch button { min-height: 36px; padding: 7px 12px; border: 1px solid var(--line); background: #fff; color: inherit; font-size: 13px; }
+.day-switch button[aria-pressed=true] { color: #fff; background: var(--accent); border-color: var(--accent); }
+.day-switch button:hover[aria-pressed=false] { background: var(--selected); }
+.list-meta { justify-content: space-between; gap: 16px; margin-bottom: 9px; font-size: 12px; }
+.update-control { gap: 10px; color: var(--muted); font-size: 11px; }
+.update-control .text-button { font-size: 12px; }
+.notice { font-size: 13px; line-height: 1.7; padding: 10px 0; color: #895322; }
+#forecast-table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+#forecast-table th, #forecast-table td { border-bottom: 1px solid var(--line); vertical-align: middle; }
+#forecast-table thead th { text-align: left; font-weight: 400; border-top: 1px solid var(--line); }
+.mountain-heading { width: 28%; padding: 14px 8px; color: var(--muted); font-size: 12px; }
+.day-header { padding: 13px 18px 11px; }
+.date-heading { display: block; margin-bottom: 14px; font-size: 14px; font-weight: 600; }
+.metric-headings, .weather-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.metric-headings { color: var(--muted); font-size: 11px; }
+.metric-headings .unit { display: block; margin-top: 4px; font-size: 10px; }
+.mountain-cell { padding: 18px 12px 18px 8px; font-weight: 400; text-align: left; }
+.mountain-info { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.rank { font-variant-numeric: tabular-nums; font-size: 15px; color: var(--muted); }
+.mountain-name h2 { margin: 0 0 5px; font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+.mountain-name p { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.edit-button { font-size: 11px; }
+.day-forecast { padding: 18px; }
+.day-header.is-selected, .day-forecast.is-selected { background: var(--selected); }
+.day-caption { display: none; }
+.weather-metrics { margin: 0; }
+.weather-metrics dt, .weather-metrics dd > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.weather-metrics dd { margin: 0; font-size: 20px; font-weight: 400; font-variant-numeric: tabular-nums; }
+.forecast-status { margin-top: 8px; font-size: 11px; line-height: 1.6; color: var(--muted); }
+.is-stale .weather-metrics dd { color: var(--muted); }
+.retry-button { display: block; margin: 7px 0 0 32px; font-size: 11px; }
+.row-error { margin: 6px 0 0 32px; font-size: 11px; color: #895322; line-height: 1.7; }
+.method { margin-top: 20px; color: var(--muted); font-size: 12px; line-height: 1.8; }
+.method summary { cursor: pointer; width: fit-content; }
+.method-content { padding: 10px 0; max-width: 840px; }
+.method-content p + p, .method-content code + p { margin-top: 10px; }
+.method-content code { display: block; margin-top: 8px; overflow-wrap: anywhere; font-size: 11px; }
+footer { margin-top: 22px; color: var(--muted); font-size: 11px; line-height: 1.8; }
+.empty-state { padding: 32px 0; border-block: 1px solid var(--line); }
+.empty-state p { margin-bottom: 14px; color: var(--muted); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+dialog { width: min(460px, calc(100% - 32px)); padding: 24px; border: 1px solid #aeb9b1; border-radius: 4px; background: #fff; color: inherit; }
+dialog::backdrop { background: #0005; }
+.dialog-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }
+.dialog-heading h2 { font-size: 19px; margin: 0; font-weight: 600; }
+form label { display: block; margin-bottom: 16px; font-size: 13px; }
+form input { display: block; width: 100%; margin-top: 7px; min-height: 42px; padding: 9px 10px; border: 1px solid #b8c0ba; background: #fff; color: inherit; }
+.coordinate-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-help { font-size: 12px; color: var(--muted); line-height: 1.8; margin-bottom: 22px; }
+.form-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid var(--line); padding-top: 16px; }
+.form-actions .button { margin-left: auto; }
+.delete-button, .form-error { color: #974c36; }
+.form-error { font-size: 12px; margin-bottom: 14px; }
+
+@media (max-width: 720px) {
+  .page-shell { padding: 24px 18px; }
+  .page-heading { margin-bottom: 22px; }
+  h1 { font-size: 20px; }
+  .toolbar { gap: 10px 20px; }
+  .sort-control { flex-wrap: wrap; gap: 8px; }
+  .day-switch button { padding: 7px 10px; }
+  .list-meta { align-items: flex-start; flex-direction: column; gap: 2px; margin-bottom: 12px; }
+  .update-control { gap: 12px; }
+  #forecast-table { display: block; }
+  #forecast-table caption, #forecast-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  #mountain-list { display: block; }
+  .mountain-row { display: grid; grid-template-columns: 1fr; padding-bottom: 18px; border-top: 1px solid var(--line); }
+  #forecast-table .mountain-cell { display: block; padding: 15px 0 13px; border-bottom: 0; }
+  .mountain-info { grid-template-columns: 22px minmax(0, 1fr) auto; }
+  .mountain-name { display: flex; align-items: baseline; gap: 10px; }
+  .mountain-name h2 { margin: 0; font-size: 15px; }
+  .mountain-name p { white-space: nowrap; }
+  #forecast-table .day-forecast { display: block; padding: 12px; border-bottom: 0; }
+  .day-caption { display: block; font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+  .weather-metrics { gap: 16px; }
+  .weather-metrics dt, .weather-metrics dd > span { position: static; width: auto; height: auto; overflow: visible; clip-path: none; white-space: normal; }
+  .weather-metrics dt { font-size: 11px; font-weight: 400; color: var(--muted); margin-bottom: 5px; }
+  .weather-metrics dd { font-size: 21px; }
+  .weather-metrics dd > span { margin-left: 4px; font-size: 11px; color: var(--muted); }
+  .retry-button, .row-error { margin-left: 32px; }
+}
