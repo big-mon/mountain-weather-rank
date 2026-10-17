@@ -1,4 +1,4 @@
-import { SAMPLE_MOUNTAINS, MAX_MOUNTAINS, getWeekend, isFresh, validateMountain, rankMountains } from './core.mjs';
+import { SAMPLE_MOUNTAINS, MAX_MOUNTAINS, getWeekend, isFresh, validateMountain, rankMountains, forecastStatus } from './core.mjs';
 import { fetchForecast, forecastCacheKey, readCachedForecast } from './weather.mjs';
 
 const $ = (selector) => document.querySelector(selector);
@@ -44,21 +44,32 @@ function saveMountains() {
   }
 }
 
+const STATUS_LABEL = {
+  loading: '取得中…',
+  error: '取得できませんでした',
+  'refresh-failed': '再取得に失敗しました',
+  elevation: '標高が気圧面の範囲外 · 順位対象外',
+  incomplete: 'データ不足 · 順位対象外',
+};
+
+function statusText(forecast, date) {
+  const status = forecastStatus(forecast, date);
+  if (status === 'stale') return `古い予報 · ${timeLabel(forecast.fetchedAt)}取得`;
+  return STATUS_LABEL[status] ?? '';
+}
+
 function forecastCell(forecast, date) {
   const summary = forecast?.days?.[date];
-  const stale = summary && !isFresh(forecast.fetchedAt);
-  let status = '';
-  if (forecast?.loading) status = '取得中…';
-  else if (stale) status = `古い予報 · ${timeLabel(forecast.fetchedAt)}取得`;
-  else if (forecast?.error) status = '取得できませんでした';
-  else if (!summary?.complete) status = 'データ不足 · 順位対象外';
+  const status = forecastStatus(forecast, date);
+  const stale = status === 'stale' || (Boolean(forecast?.loading) && summary && !isFresh(forecast.fetchedAt));
+  const label = statusText(forecast, date);
   return `<td class="day-forecast ${date === selectedDate ? 'is-selected' : ''} ${stale ? 'is-stale' : ''}">
     <div class="day-caption">${dateLabel(date)}（${date === weekend.dates[0] ? '土' : '日'}）</div>
     <dl class="weather-metrics">
       <div><dt>最大風速</dt><dd>${number(summary?.maxWindMps)}<span>m/s</span></dd></div>
       <div><dt>合計降水</dt><dd>${number(summary?.precipitationMm)}<span>mm</span></dd></div>
       <div><dt>平均雲量</dt><dd>${number(summary?.meanCloudPct, 0)}<span>%</span></dd></div>
-    </dl>${status ? `<p class="forecast-status">${escapeHtml(status)}</p>` : ''}</td>`;
+    </dl>${label ? `<p class="forecast-status">${escapeHtml(label)}</p>` : ''}</td>`;
 }
 
 function render() {
@@ -76,20 +87,20 @@ function render() {
     heading.classList.toggle('is-selected', selectedDate === dates[index]);
   }
   $('#ranking-description').textContent = `${dateLabel(selectedDate)}（${selectedDate === dates[0] ? '土' : '日'}）の天気条件がよい順`;
-  const loadingCount = mountains.filter((m) => forecasts.get(m.id)?.loading).length;
-  $('#refresh').disabled = loadingCount > 0 || mountains.length === 0;
+  const pendingCount = mountains.filter((m) => forecastStatus(forecasts.get(m.id), selectedDate) === 'loading').length;
+  $('#refresh').disabled = pendingCount > 0 || mountains.length === 0;
   const timestamps = mountains.map((m) => forecasts.get(m.id)?.fetchedAt).filter(Number.isFinite);
-  $('#updated-at').textContent = loadingCount ? `予報を取得中 · 残り${loadingCount}山` : timestamps.length ? `取得 ${timeLabel(Math.min(...timestamps))}（日本時間）` : mountains.length ? '取得済みの予報がありません' : '';
+  $('#updated-at').textContent = pendingCount ? `予報を取得中 · 残り${pendingCount}山` : timestamps.length ? `取得 ${timeLabel(Math.min(...timestamps))}（日本時間）` : mountains.length ? '取得済みの予報がありません' : '';
   const entries = rankMountains(mountains, forecasts, selectedDate);
-  const noRanks = mountains.length > 0 && !loadingCount && !entries.some((entry) => entry.eligible);
+  const noRanks = mountains.length > 0 && pendingCount === 0 && !entries.some((entry) => entry.eligible);
   const notice = [storageWarning, noRanks ? '比較できる予報がありません。各山の状態を確認して、再取得してください。' : ''].filter(Boolean).join(' ');
   $('#notice').textContent = notice;
   $('#notice').hidden = !notice;
   $('#empty-state').hidden = mountains.length !== 0;
   $('#forecast-table').hidden = mountains.length === 0;
-  $('#load-status').textContent = loadingCount ? `${loadingCount}山の予報を取得しています。` : `${entries.filter((entry) => entry.eligible).length}山の予報を比較できます。`;
+  $('#load-status').textContent = pendingCount ? `${pendingCount}山の予報を取得しています。` : `${entries.filter((entry) => entry.eligible).length}山の予報を比較できます。`;
   $('#mountain-list').innerHTML = entries.map(({ mountain, forecast, rank }) => {
-    const retry = !forecast?.loading && (forecast?.error || !isFresh(forecast?.fetchedAt) || !forecast?.days?.[selectedDate]?.complete);
+    const retry = ['stale', 'error', 'refresh-failed', 'incomplete'].includes(forecastStatus(forecast, selectedDate));
     return `<tr class="mountain-row">
       <th scope="row" class="mountain-cell">
         <div class="mountain-info">

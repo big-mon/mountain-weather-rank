@@ -17,7 +17,7 @@ export function buildWeatherUrl(mountain, dates) {
 }
 
 export async function fetchForecast(mountain, dates, signal) {
-  const response = await fetch(buildWeatherUrl(mountain, dates), { signal });
+  const response = await fetch(buildWeatherUrl(mountain, dates), { signal, cache: 'no-store' });
   if (!response.ok) throw new Error(`予報を取得できませんでした（HTTP ${response.status}）。`);
   const data = await response.json();
   if (!Array.isArray(data?.hourly?.time)) throw new Error('予報データの形式を確認できませんでした。');

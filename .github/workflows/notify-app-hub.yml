@@ -1,0 +1,36 @@
+name: Notify App Hub
+
+# Dispatch only after CI succeeds for a push to main. Failed, cancelled,
+# and pull request runs do not notify App Hub.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  dispatch:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch app-hub rebuild
+        env:
+          APP_HUB_DISPATCH_TOKEN: ${{ secrets.APP_HUB_DISPATCH_TOKEN }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          if [ -z "${APP_HUB_DISPATCH_TOKEN}" ]; then
+            echo "APP_HUB_DISPATCH_TOKEN is not set"
+            exit 1
+          fi
+          if [ -z "${HEAD_SHA}" ]; then
+            echo "CI head SHA is missing"
+            exit 1
+          fi
+
+          payload=$(printf '{"event_type":"tool_updated","client_payload":{"repo":"%s","sha":"%s"}}' "${GITHUB_REPOSITORY}" "${HEAD_SHA}")
+
+          curl --fail-with-body --silent --show-error -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${APP_HUB_DISPATCH_TOKEN}" \
+            https://api.github.com/repos/big-mon/app-hub/dispatches \
+            -d "${payload}"
