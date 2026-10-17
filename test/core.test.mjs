@@ -58,6 +58,21 @@ test('a missing hour or variable makes the day ineligible, retaining other compl
   assert.deepEqual(summarizeDay(hourlyFixture(), date, 9000), { maxWindMps: null, precipitationMm: 9, meanCloudPct: null, complete: false, reason: 'elevation' });
   hourly.time[10] = '2026-10-17T10:30';
   assert.equal(summarizeDay(hourly, date, 750).maxWindMps, null);
+  assert.equal(summarizeDay(hourly, date, 750).reason, 'missing');
+});
+
+test('one hour outside the pressure range is an elevation failure, not a retryable shortage', () => {
+  const hourly = hourlyFixture();
+  for (const level of PRESSURE_LEVELS) hourly[`geopotential_height_${level}hPa`][10] = 5000 + level;
+  const summary = summarizeDay(hourly, date, 750);
+  assert.equal(summary.complete, false);
+  assert.equal(summary.reason, 'elevation');
+  assert.equal(summary.maxWindMps, null);
+  assert.equal(summary.precipitationMm, 9);
+  assert.equal(forecastStatus({ fetchedAt: Date.now(), days: { [date]: summary } }, date), 'elevation');
+  const unknownHeight = hourlyFixture();
+  for (const level of PRESSURE_LEVELS) unknownHeight[`geopotential_height_${level}hPa`][10] = null;
+  assert.equal(summarizeDay(unknownHeight, date, 750).reason, 'missing');
 });
 
 test('weights reward lower wind, precipitation and cloud independently without capping extremes', () => {

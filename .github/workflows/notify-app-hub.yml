@@ -1,23 +1,26 @@
 name: Notify App Hub
 
 on:
-  push:
-    branches: [main]
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
 
 jobs:
   dispatch:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     steps:
       - name: Dispatch app-hub rebuild
         env:
           APP_HUB_DISPATCH_TOKEN: ${{ secrets.APP_HUB_DISPATCH_TOKEN }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           if [ -z "${APP_HUB_DISPATCH_TOKEN}" ]; then
             echo "APP_HUB_DISPATCH_TOKEN is not set"
             exit 1
           fi
 
-          payload=$(printf '{"event_type":"tool_updated","client_payload":{"repo":"%s","sha":"%s"}}' "${GITHUB_REPOSITORY}" "${GITHUB_SHA}")
+          payload=$(printf '{"event_type":"tool_updated","client_payload":{"repo":"%s","sha":"%s"}}' "${GITHUB_REPOSITORY}" "${HEAD_SHA}")
 
           curl --fail-with-body --silent --show-error -X POST \
             -H "Accept: application/vnd.github+json" \
