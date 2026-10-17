@@ -73,13 +73,13 @@ function elevationCovered(hourly, index, elevationM) {
 }
 
 function elevationOutsideForecast(hourly, date, elevationM) {
+  let outside = false;
   for (let hour = 6; hour <= 15; hour++) {
     const index = hourIndex(hourly, date, hour);
-    if (index < 0) return false;
-    const covered = elevationCovered(hourly, index, elevationM);
-    if (covered !== false) return false;
+    if (index < 0) continue;
+    if (elevationCovered(hourly, index, elevationM) === false) outside = true;
   }
-  return true;
+  return outside;
 }
 
 export function summarizeDay(hourly, date, elevationM) {
