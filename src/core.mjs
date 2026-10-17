@@ -60,13 +60,34 @@ export function comparisonCost({ maxWindMps, precipitationMm, meanCloudPct }) {
   return 0.50 * maxWindMps / 10 + 0.35 * precipitationMm / 10 + 0.15 * meanCloudPct / 100;
 }
 
-export function summarizeDay(hourly, date, elevationM) {
+function hourIndex(hourly, date, hour) {
   const times = Array.isArray(hourly?.time) ? hourly.time : [];
+  return times.indexOf(`${date}T${String(hour).padStart(2, '0')}:00`);
+}
+
+// null means the hour has no height data, so the cause is unknown.
+function elevationCovered(hourly, index, elevationM) {
+  const heights = PRESSURE_LEVELS.map((level) => hourly?.[`geopotential_height_${level}hPa`]?.[index]).filter(Number.isFinite);
+  if (heights.length === 0) return null;
+  return elevationM >= Math.min(...heights) && elevationM <= Math.max(...heights);
+}
+
+function elevationOutsideForecast(hourly, date, elevationM) {
+  for (let hour = 6; hour <= 15; hour++) {
+    const index = hourIndex(hourly, date, hour);
+    if (index < 0) return false;
+    const covered = elevationCovered(hourly, index, elevationM);
+    if (covered !== false) return false;
+  }
+  return true;
+}
+
+export function summarizeDay(hourly, date, elevationM) {
   const winds = [];
   const clouds = [];
   const precipitation = [];
   for (let hour = 6; hour <= 15; hour++) {
-    const index = times.indexOf(`${date}T${String(hour).padStart(2, '0')}:00`);
+    const index = hourIndex(hourly, date, hour);
     winds.push(index < 0 ? null : interpolateAtElevation(hourly, index, elevationM, 'wind_speed'));
     clouds.push(index < 0 ? null : interpolateAtElevation(hourly, index, elevationM, 'cloud_cover'));
     if (hour > 6) {
@@ -81,7 +102,17 @@ export function summarizeDay(hourly, date, elevationM) {
     meanCloudPct: allValid(clouds) ? clouds.reduce((sum, value) => sum + value, 0) / clouds.length : null,
   };
   summary.complete = Object.values(summary).every(Number.isFinite);
+  if (!summary.complete) summary.reason = elevationOutsideForecast(hourly, date, elevationM) ? 'elevation' : 'missing';
   return summary;
+}
+
+export function forecastStatus(forecast, date, now = Date.now()) {
+  if (!forecast || forecast.loading) return 'loading';
+  const summary = forecast.days?.[date];
+  if (summary && !isFresh(forecast.fetchedAt, now)) return 'stale';
+  if (forecast.error) return summary ? 'refresh-failed' : 'error';
+  if (!summary?.complete) return summary?.reason === 'elevation' ? 'elevation' : 'incomplete';
+  return 'ok';
 }
 
 export function rankMountains(mountains, forecasts, date, now = Date.now()) {
@@ -91,6 +122,10 @@ export function rankMountains(mountains, forecasts, date, now = Date.now()) {
     const eligible = summary?.complete === true && isFresh(forecast.fetchedAt, now);
     return { mountain, forecast, summary, index, eligible, cost: eligible ? comparisonCost(summary) : Infinity };
   });
-  entries.sort((a, b) => a.cost - b.cost || a.index - b.index);
+  entries.sort((a, b) => {
+    if (a.eligible !== b.eligible) return a.eligible ? -1 : 1;
+    if (a.eligible && a.cost !== b.cost) return a.cost - b.cost;
+    return a.index - b.index;
+  });
   return entries.map((entry, index) => ({ ...entry, rank: entry.eligible ? index + 1 : null }));
 }
