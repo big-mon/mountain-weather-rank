@@ -2,6 +2,10 @@
 
 お気に入りの山を、土日の風・降水・雲量で見比べる個人用Webアプリです。最大5山を登録でき、選択した日の天気条件がよい順に並びます。
 
+## 公開版
+
+[週末の山の天気](https://app.damonge.com/mountain-weather-rank/) — [App Hub](https://app.damonge.com/) からも開けます。
+
 ## 起動
 
 Python 3で、このフォルダから起動します。インストールやビルドは不要です。
@@ -56,4 +60,4 @@ TZ=America/Los_Angeles node --test
 
 日付境界・高度補間・降水の対象時間・順位と同点・欠損・キャッシュ期限・API失敗を検証します。
 
-構成は `index.html`、`styles.css`、画面操作の `src/app.mjs`、純粋な計算の `src/core.mjs`、取得処理の `src/weather.mjs` です。Webアプリのホスティング・ログイン・端末間同期・地図検索・通知は初版の対象外です。
+構成は `index.html`、`styles.css`、画面操作の `src/app.mjs`、純粋な計算の `src/core.mjs`、取得処理の `src/weather.mjs` です。ログイン・端末間同期・地図検索・通知は初版の対象外です。
