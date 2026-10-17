@@ -72,6 +72,9 @@ function elevationCovered(hourly, index, elevationM) {
   return elevationM >= Math.min(...heights) && elevationM <= Math.max(...heights);
 }
 
+// One hour known to sit outside the pressure-height envelope makes the day an
+// elevation failure. A missing timestamp, or an hour with no height data, is not
+// elevation evidence by itself.
 function elevationOutsideForecast(hourly, date, elevationM) {
   let outside = false;
   for (let hour = 6; hour <= 15; hour++) {

@@ -89,7 +89,9 @@ else:
     body = (
         f"{marker}\n"
         f"プレビュー: {url}\n\n"
-        "末尾の `/` 付きで開いてください。このURLは、Settings → Pages の Source が "
+        "`gh-pages` は GitHub Pages が配信する静的ファイル用のブランチで、アプリの開発ブランチではありません。"
+        f"同じリポジトリの各PRは `pr-{number}/` に置きます。末尾の `/` 付きで開いてください。"
+        "このURLは、Settings → Pages の Source が "
         "`gh-pages` ブランチの `/` (root) のときに有効です。"
         "GitHub 公式の PR preview（`deploy-pages` の `preview`）はまだ一般公開されていません。"
     )

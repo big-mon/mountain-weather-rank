@@ -1,5 +1,8 @@
 name: Pages preview
 
+# Every same-repo pull request. gh-pages is the branch GitHub Pages serves
+# (one pr-<number>/ directory per PR), not the application source.
+
 on:
   pull_request:
     types: [opened, synchronize, reopened, closed]

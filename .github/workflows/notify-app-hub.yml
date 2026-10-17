@@ -1,9 +1,12 @@
 name: Notify App Hub
 
+# Dispatch only after CI succeeds for a push to main. Failed, cancelled,
+# and pull request runs do not notify App Hub.
 on:
   workflow_run:
     workflows: [CI]
     types: [completed]
+    branches: [main]
 
 jobs:
   dispatch:
@@ -17,6 +20,10 @@ jobs:
         run: |
           if [ -z "${APP_HUB_DISPATCH_TOKEN}" ]; then
             echo "APP_HUB_DISPATCH_TOKEN is not set"
+            exit 1
+          fi
+          if [ -z "${HEAD_SHA}" ]; then
+            echo "CI head SHA is missing"
             exit 1
           fi
 

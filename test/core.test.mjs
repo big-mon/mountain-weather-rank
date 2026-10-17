@@ -72,7 +72,20 @@ test('one hour outside the pressure range is an elevation failure, not a retryab
   assert.equal(forecastStatus({ fetchedAt: Date.now(), days: { [date]: summary } }, date), 'elevation');
   const unknownHeight = hourlyFixture();
   for (const level of PRESSURE_LEVELS) unknownHeight[`geopotential_height_${level}hPa`][10] = null;
-  assert.equal(summarizeDay(unknownHeight, date, 750).reason, 'missing');
+  const unknownSummary = summarizeDay(unknownHeight, date, 750);
+  assert.equal(unknownSummary.reason, 'missing');
+  assert.equal(forecastStatus({ fetchedAt: Date.now(), days: { [date]: unknownSummary } }, date), 'incomplete');
+  const missingTimestamp = hourlyFixture();
+  missingTimestamp.time[12] = `${date}T12:30`;
+  const missingTimestampSummary = summarizeDay(missingTimestamp, date, 750);
+  assert.equal(missingTimestampSummary.reason, 'missing');
+  assert.equal(forecastStatus({ fetchedAt: Date.now(), days: { [date]: missingTimestampSummary } }, date), 'incomplete');
+  const mixed = hourlyFixture();
+  for (const level of PRESSURE_LEVELS) {
+    mixed[`geopotential_height_${level}hPa`][10] = 5000 + level;
+    mixed[`geopotential_height_${level}hPa`][11] = null;
+  }
+  assert.equal(summarizeDay(mixed, date, 750).reason, 'elevation');
 });
 
 test('weights reward lower wind, precipitation and cloud independently without capping extremes', () => {
