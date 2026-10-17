@@ -12,10 +12,17 @@ SITE_URL="https://big-mon.github.io/${GITHUB_REPOSITORY#*/}/pr-${PR_NUMBER}/"
 WORKDIR=$(mktemp -d)
 trap 'rm -rf "$WORKDIR"' EXIT
 site="$WORKDIR/site"
-auth=( -c "http.extraheader=AUTHORIZATION: bearer ${GITHUB_TOKEN}" )
+basic=$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w 0)
+echo "::add-mask::${basic}"
+auth=( -c "http.extraheader=AUTHORIZATION: basic ${basic}" )
 
 if [[ "${PAGES_PREVIEW_DRY_RUN:-}" != "1" ]]; then
-  if ! git "${auth[@]}" clone --depth 1 --branch gh-pages "https://github.com/${GITHUB_REPOSITORY}.git" "$site"; then
+  clone_log=$(mktemp)
+  if ! git "${auth[@]}" clone --depth 1 --branch gh-pages "https://github.com/${GITHUB_REPOSITORY}.git" "$site" 2>"$clone_log"; then
+    cat "$clone_log" >&2
+    if ! grep -q 'not found' "$clone_log"; then
+      exit 1
+    fi
     rm -rf "$site"
     mkdir -p "$site"
     git -C "$site" init -b gh-pages
