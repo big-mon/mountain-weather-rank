@@ -30,6 +30,16 @@ python3 -m http.server 8000 --bind 127.0.0.1 --directory /tmp/app-hub
 
 ブラウザで <http://127.0.0.1:8000/mountain-weather-rank/> を開きます。末尾の `/` を付けてください。
 
+## プルリクエストのプレビュー
+
+GitHub Pages の公式プレビュー（`deploy-pages` の `preview`）はまだ一般公開されていません。同じリポジトリのPRは、静的ファイルを `gh-pages` ブランチの `pr-<番号>/` に置きます。相対パスのままなので、次のURLで開けます。
+
+```text
+https://big-mon.github.io/mountain-weather-rank/pr-<番号>/
+```
+
+末尾の `/` が必要です。初回だけ Settings → Pages → Source を `gh-pages` ブランチの `/` (root) にしてください。Pages が無効だとブランチは更新されてもURLは404です。本番の公開先は App Hub のままです。
+
 ## 使い方
 
 - 最初は高尾山・筑波山・丹沢山・大菩薩嶺・雲取山の5山を表示します。
